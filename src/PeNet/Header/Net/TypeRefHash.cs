@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using PeNet.Crypto;
@@ -15,6 +16,7 @@ namespace PeNet.Header.Net
 
         public string? ComputeHash()
         {
+            var comp = StringComparer.Create(CultureInfo.InvariantCulture, true);
             static string GetSha256(string typeRefsAsString)
             {
                 var input = Encoding.UTF8.GetBytes(typeRefsAsString);
@@ -27,14 +29,12 @@ namespace PeNet.Header.Net
             try
             {
                 var namespacesAndTypes = typeRefs
-                    .OrderBy(t => MdsStream.GetStringAtIndex(t.TypeNamespace))
-                    .ThenBy(t => MdsStream.GetStringAtIndex(t.TypeName))
+                    .OrderBy(t => MdsStream.GetStringAtIndex(t.TypeNamespace), comp)
+                    .ThenBy(t => MdsStream.GetStringAtIndex(t.TypeName), comp)
                     .Select(t => string.Join("-",
                         MdsStream.GetStringAtIndex(t.TypeNamespace),
                         MdsStream.GetStringAtIndex(t.TypeName)
-                    ))
-                    .ToList();
-
+                    ));
                 var typeRefsAsString = string.Join(",", namespacesAndTypes);
                 return GetSha256(typeRefsAsString);
             }
